@@ -65,7 +65,6 @@
   function today() { return new Date().toISOString().slice(0, 10); }
   function getWeek(d) { var dd = new Date(d); dd.setDate(dd.getDate() - dd.getDay()); return dd.toISOString().slice(0, 10); }
   function fmt(n) { return n.toLocaleString(); }
-  function coinStr(n) { return n + '\uD83E\uDE99'; }
 
   // ─── Persistence ───
   function save() {
@@ -108,7 +107,7 @@
     STREAK_BONUSES.forEach(function(sb) {
       if (S.streak >= sb.days && ms.indexOf(sb.days) === -1) {
         bonus += sb.bonus; ms.push(sb.days);
-        toast(' Streak ' + sb.label + '! +' + sb.bonus + coinStr(''));
+        toast('🔥 Streak ' + sb.label + '! +' + sb.bonus + '🪙');
       }
     });
     if (bonus > 0) { S.coins += bonus; S.totalEarned += bonus; S.streakMilestones = ms; save(); }
@@ -152,7 +151,7 @@
 
   function actByType(type) {
     for (var i = 0; i < ACT_TYPES.length; i++) { if (ACT_TYPES[i].id === type) return ACT_TYPES[i]; }
-    return { emoji: '\uD83D\uDCDD', name: type };
+    return { emoji: '📝', name: type };
   }
 
   // ─── Actions ───
@@ -183,7 +182,7 @@
             item.done = true;
             S.coins += item.reward;
             S.totalEarned += item.reward;
-            toast(' Quest "' + item.desc + '" \u2705 +' + item.reward + coinStr(''));
+            toast('✅ Quest "' + item.desc + '" เสร็จ! +' + item.reward + '🪙');
           }
         }
       });
@@ -191,27 +190,27 @@
       S.currentQuest.items.forEach(function(i) { if (!i.done) allDone = false; });
       if (allDone && !S.currentQuest.completed) {
         S.currentQuest.completed = true;
-        toast(' Weekly Quest \u2705 \uD83C\uDF89');
+        toast('🎉 Weekly Quest สำเร็จแล้ว! 🏆');
       }
     }
 
     checkStreakBonus();
     save();
     renderAll();
-    toast('+' + coins + coinStr('') + ' ' + (actByType(type).name));
+    toast('+' + coins + '🪙 ' + (actByType(type).name));
   }
 
   function purchase(id) {
     var item = null;
     for (var i = 0; i < S.shopItems.length; i++) { if (S.shopItems[i].id === id) { item = S.shopItems[i]; break; } }
     if (!item || item.purchased) return;
-    if (S.coins < item.price) { toast(' \u26A0\uFE0F ไมพอ! ขาดอีก ' + (item.price - S.coins) + coinStr('')); return; }
+    if (S.coins < item.price) { toast('⚠️ ไม่พอ! ขาดอีก ' + (item.price - S.coins) + '🪙'); return; }
     S.coins -= item.price;
     item.purchased = true;
     item.purchasedDate = today();
     save();
     renderAll();
-    toast(' ' + item.emoji + ' ' + item.name + ' \u2705');
+    toast('✅ ' + item.emoji + ' ' + item.name + ' ');
   }
 
   function resetShop(id) {
@@ -245,15 +244,14 @@
 
   // ─── Render ───
   function renderAll() {
-    // Header
+    // Header coin
     var cd = document.getElementById('coinDisplay');
-    if (cd) cd.textContent = '\uD83E\uDE99 ' + fmt(S.coins);
+    if (cd) cd.innerHTML = '<span class="coin-icon">🪙</span> ' + fmt(S.coins);
 
     // Sync status
     var ss = document.getElementById('syncStatus');
-    if (ss) ss.innerHTML = '<span class="sync-dot"></span> \u0E40\u0E01\u0E47\u0E1A\u0E43\u0E19\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07 (localStorage)';
+    if (ss) ss.innerHTML = '<span class="sync-dot"></span> เก็บในเครื่อง (localStorage)';
 
-    // Dashboard
     renderDash();
     renderLogForm();
     renderLogList();
@@ -279,46 +277,57 @@
     if (recent.length) {
       recentHtml = recent.map(function(l) {
         var a = actByType(l.type);
-        return '<div class="log-item" style="padding:6px 0"><div class="log-icon">' + a.emoji + '</div><div class="log-body"><div class="log-desc">' + l.description + '</div><div class="log-detail">' + l.date + ' \u00B7 ' + l.duration + ' \u0E19\u0E32\u0E17\u0E35</div></div><div class="log-coins">+' + l.coins + '</div></div>';
+        return '<div class="log-item"><div class="log-icon">' + a.emoji + '</div><div class="log-body"><div class="log-type">' + a.name + '</div><div class="log-desc">' + l.description + '</div><div class="log-detail">' + l.date + ' · ' + l.duration + ' นาที</div></div><div class="log-coins">+' + l.coins + '</div></div>';
       }).join('');
     } else {
-      recentHtml = '<div class="empty-state"><div class="icon">\uD83D\uDCDA</div><p>\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E01\u0E32\u0E23\u0E40\u0E23\u0E35\u0E22\u0E19</p></div>';
+      recentHtml = '<div class="empty-state"><span class="icon">📚</span><p>ยังไม่มีการเรียนรู้ — เริ่มต้นเลย!</p></div>';
     }
 
     var sPct = nextMs ? Math.min(100, Math.round(S.streak / nextMs.days * 100)) : 100;
-    var sLabel = nextMs ? (S.streak + '/' + nextMs.days) : (S.streak >= 60 ? '\u0E15\u0E33\u0E19\u0E32\u0E19!' : '');
+    var sLabel = nextMs ? (S.streak + '/' + nextMs.days) : (S.streak >= 60 ? '🔥 ตำนาน!' : '');
 
     var html = '';
     // Stats row
-    html += '<div class="stat-row" style="margin-bottom:10px">';
-    html += '<div class="stat-box"><div class="num">' + S.streak + '</div><div class="label">\uD83D\uDD25 Streak</div></div>';
-    html += '<div class="stat-box"><div class="num">' + qp.done + '/' + qp.total + '</div><div class="label">\uD83D\uDCCB Quest</div></div>';
-    html += '<div class="stat-box"><div class="num">' + S.stats.totalStudyDays + '</div><div class="label">\uD83D\uDCC5 \u0E27\u0E31\u0E19\u0E17\u0E35\u0E48\u0E40\u0E23\u0E35\u0E22\u0E19</div></div>';
+    html += '<div class="stat-row">';
+    html += '<div class="stat-box"><span class="num">' + S.streak + '</span><div class="label">🔥 Streak</div></div>';
+    html += '<div class="stat-box"><span class="num">' + qp.done + '/' + qp.total + '</span><div class="label">📋 Quest</div></div>';
+    html += '<div class="stat-box"><span class="num">' + S.stats.totalStudyDays + '</span><div class="label">📅 วันที่เรียน</div></div>';
     html += '</div>';
 
-    // Not studied today warning
+    // Today status
     if (!studiedToday) {
-      html += '<div class="card" style="border-color:var(--accent2);background:linear-gradient(135deg,#1e293b,#2d1b69)"><div style="text-align:center;padding:6px 0"><div style="font-size:28px;margin-bottom:4px">\uD83D\uDCE2</div><div style="font-size:14px;font-weight:600">\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E40\u0E23\u0E35\u0E22\u0E19\u0E40\u0E25\u0E22!</div><div style="font-size:12px;color:var(--text-dim);margin:4px 0 10px">\u0E2D\u0E22\u0E48\u0E32\u0E1E\u0E36\u0E48\u0E07 Streak \u0E41\u0E15\u0E01!</div><button class="btn btn-primary btn-sm" onclick="switchTab(\'log\')">\uD83D\uDCDD \u0E44\u0E1B\u0E08\u0E14\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E40\u0E25\u0E22</button></div></div>';
+      html += '<div class="card" style="border-color:rgba(251,191,36,.3);text-align:center;padding:20px">';
+      html += '<div style="font-size:36px;margin-bottom:8px">📢</div>';
+      html += '<div style="font-size:15px;font-weight:700;margin-bottom:4px">วันนี้ยังไม่ได้เรียนเลย!</div>';
+      html += '<div style="font-size:12px;color:#64748b;margin-bottom:12px">อย่าพึ่ง Streak แตก!</div>';
+      html += '<button class="btn btn-primary btn-sm" onclick="switchTab(\'log\')">📝 ไปจดบันทึกเลย</button></div>';
     } else {
-      html += '<div class="card" style="border-color:var(--success)"><div style="text-align:center;font-size:13px">\u2705 \u0E40\u0E23\u0E35\u0E22\u0E19\u0E41\u0E25\u0E49\u0E27\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49! \u0E23\u0E31\u0E01\u0E29\u0E32 Streak \u0E15\u0E48\u0E2D\u0E44\u0E1B!</div></div>';
+      html += '<div class="card" style="border-color:rgba(34,197,94,.3);text-align:center;padding:14px">✅ เรียนแล้ววันนี้! รักษา Streak ต่อไป!</div>';
     }
 
     // Streak progress
     if (nextMs) {
-      html += '<div class="card"><div class="card-title"> Streak \u0E16\u0E31\u0E14\u0E44\u0E1B</div><div style="display:flex;align-items:center;gap:10px"><div style="flex:1"><div style="font-size:12px;margin-bottom:4px">\uD83D\uDD25 ' + nextMs.label + ' \u2192 +' + nextMs.bonus + '\uD83E\uDE99</div><div class="progress-bar"><div class="progress-fill" style="width:' + sPct + '%;background:var(--accent2)"></div></div></div><div style="font-size:20px;font-weight:700">' + sLabel + '</div></div></div>';
+      html += '<div class="card"><div class="card-title">🔥 Streak ถัดไป</div>';
+      html += '<div style="display:flex;align-items:center;gap:12px">';
+      html += '<div style="flex:1"><div style="font-size:12px;margin-bottom:4px">' + nextMs.label + ' → +' + nextMs.bonus + '🪙</div>';
+      html += '<div class="progress-bar"><div class="progress-fill" style="width:' + sPct + '%"></div></div></div>';
+      html += '<div style="font-size:22px;font-weight:700;color:#fbbf24">' + sLabel + '</div></div></div>';
     } else if (S.streak >= 60) {
-      html += '<div class="card" style="border-color:var(--accent2)"><div style="text-align:center">\uD83D\uDC51 Streak 60+ \u0E27\u0E31\u0E19! \u0E04\u0E38\u0E13\u0E04\u0E37\u0E2D\u0E15\u0E33\u0E19\u0E32\u0E19!</div></div>';
+      html += '<div class="card" style="text-align:center;border-color:rgba(251,191,36,.3)">🔥 Streak 60+ วัน! คุณคือตำนาน!</div>';
     }
 
-    // Quest
+    // Quest banner
     if (S.currentQuest && !S.currentQuest.completed) {
-      html += '<div class="quest-banner"><div class="title">\uD83D\uDCCB Weekly Quest</div><div class="sub">' + S.currentQuest.msg + '</div><div style="margin-top:6px"><div class="progress-bar" style="background:rgba(0,0,0,.2)"><div class="progress-fill" style="width:' + qp.pct + '%;background:#fff"></div></div><div style="font-size:11px;opacity:.8;text-align:right;margin-top:2px">' + qp.done + '/' + qp.total + '</div></div></div>';
+      html += '<div class="quest-banner"><div class="title">📋 Weekly Quest</div>';
+      html += '<div class="sub">' + S.currentQuest.msg + '</div>';
+      html += '<div style="margin-top:8px"><div class="progress-bar" style="background:rgba(0,0,0,.2)"><div class="progress-fill" style="width:' + qp.pct + '%;background:linear-gradient(90deg,#a78bfa,#22d3ee)"></div></div>';
+      html += '<div style="font-size:11px;opacity:.6;text-align:right;margin-top:2px">' + qp.done + '/' + qp.total + '</div></div></div>';
     } else if (S.currentQuest && S.currentQuest.completed) {
-      html += '<div class="card" style="border-color:var(--success)"><div style="text-align:center"> Weekly Quest \u0E2D\u0E32\u0E17\u0E34\u0E15\u0E22\u0E4C\u0E19\u0E35\u0E49\u0E40\u0E2A\u0E23\u0E47\u0E08\u0E41\u0E25\u0E49\u0E27!</div></div>';
+      html += '<div class="card" style="border-color:rgba(34,197,94,.3);text-align:center;padding:20px">🎉 <strong>Weekly Quest อาทิตย์นี้เสร็จแล้ว!</strong></div>';
     }
 
     // Recent
-    html += '<div class="card"><div class="card-title">\uD83D\uDD50 \u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14</div>' + recentHtml + '</div>';
+    html += '<div class="card"><div class="card-title">🕐 บันทึกล่าสุด</div>' + recentHtml + '</div>';
 
     el.innerHTML = html;
   }
@@ -327,20 +336,20 @@
     var el = document.getElementById('logFormPanel');
     if (!el) return;
     var opts = ACT_TYPES.map(function(a) { return '<option value="' + a.id + '">' + a.emoji + ' ' + a.name + '</option>'; }).join('');
-    el.innerHTML = '<div class="card"><div class="card-title">\uD83D\uDCDD \u0E08\u0E14\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E01\u0E32\u0E23\u0E40\u0E23\u0E35\u0E22\u0E19</div>'
-      + '<div class="form-group"><label>\u0E1B\u0E23\u0E30\u0E40\u0E20\u0E17\u0E01\u0E34\u0E08\u0E01\u0E23\u0E23\u0E21</label><select class="form-select" id="logType">' + opts + '</select></div>'
-      + '<div class="form-group"><label>\u0E23\u0E30\u0E22\u0E30\u0E40\u0E27\u0E25\u0E32 (\u0E19\u0E32\u0E17\u0E35)</label><input class="form-input" type="number" id="logDuration" min="1" value="15" /></div>'
-      + '<div class="form-group"><label>\u0E2A\u0E34\u0E48\u0E07\u0E17\u0E35\u0E48\u0E40\u0E23\u0E35\u0E22\u0E19</label><input class="form-input" type="text" id="logDesc" placeholder="\u0E04\u0E33\u0E28\u0E31\u0E1E\u0E17\u0E4C\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07 \u0E2A\u0E2D\u0E1A, \u0E1A\u0E17\u0E17\u0E35\u0E48 3 ..." /></div>'
-      + '<div class="form-group"><label>\u0E23\u0E32\u0E22\u0E25\u0E30\u0E40\u0E2D\u0E35\u0E22\u0E14</label><textarea class="form-textarea" id="logDetails" placeholder="\u0E04\u0E33\u0E28\u0E31\u0E1E\u0E17\u0E4C, \u0E2A\u0E23\u0E38\u0E1B, \u0E42\u0E19\u0E49\u0E15 ..."></textarea></div>'
-      + '<button class="btn btn-primary" onclick="window.addLogEntry()">\u2705 \u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01</button></div>'
-      + '<div class="card"><div class="card-title">\u0E40\u0E2B\u0E23\u0E35\u0E22\u0E0D\u0E17\u0E35\u0E48\u0E04\u0E32\u0E14\u0E27\u0E48\u0E32\u0E08\u0E30\u0E44\u0E14\u0E49</div><div style="font-size:24px;font-weight:700;text-align:center" id="coinPreview">0 \uD83E\uDE99</div></div>';
+    el.innerHTML = '<div class="card"><div class="card-title">📝 จดบันทึกการเรียนรู้</div>'
+      + '<div class="form-group"><label>ประเภทกิจกรรม</label><select class="form-select" id="logType">' + opts + '</select></div>'
+      + '<div class="form-group"><label>ระยะเวลา (นาที)</label><input class="form-input" type="number" id="logDuration" min="1" value="15" /></div>'
+      + '<div class="form-group"><label>สิ่งที่เรียน</label><input class="form-input" type="text" id="logDesc" placeholder="คำศัพท์เรื่อง สอบ, บทที่ 3 ..." /></div>'
+      + '<div class="form-group"><label>รายละเอียด</label><textarea class="form-textarea" id="logDetails" placeholder="คำศัพท์, สรุป, โน้ต..."></textarea></div>'
+      + '<button class="btn btn-primary" onclick="window.addLogEntry()">✅ บันทึก</button></div>'
+      + '<div class="card"><div class="card-title">💰 เหรียญที่คาดว่าจะได้</div><div style="font-size:28px;font-weight:700;text-align:center;color:#fbbf24" id="coinPreview">0 🪙</div></div>';
   }
 
   function renderLogList() {
     var el = document.getElementById('logListContent');
     if (!el) return;
     if (!S.logs.length) {
-      el.innerHTML = '<div class="empty-state"><div class="icon">\uD83D\uDCED</div><p>\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01</p></div>';
+      el.innerHTML = '<div class="empty-state"><span class="icon">💤</span><p>ยังไม่มีบันทึก</p></div>';
       return;
     }
     var groups = {}, order = [];
@@ -350,12 +359,12 @@
     });
     var html = '';
     order.forEach(function(date) {
-      html += '<div class="card" style="padding:10px 14px"><div class="card-title" style="font-size:11px">' + date + '</div>';
+      html += '<div class="card" style="padding:12px 16px"><div class="card-title" style="font-size:11px;margin-bottom:6px">' + date + '</div>';
       groups[date].forEach(function(l) {
         var a = actByType(l.type);
-        html += '<div class="log-item"><div class="log-icon">' + a.emoji + '</div><div class="log-body"><div class="log-type">' + a.name + '</div><div class="log-desc">' + l.description + '</div>';
+        html += '<div class="log-item" style="padding:8px 0"><div class="log-icon">' + a.emoji + '</div><div class="log-body"><div class="log-type">' + a.name + '</div><div class="log-desc">' + l.description + '</div>';
         if (l.details) html += '<div class="log-detail">' + l.details + '</div>';
-        html += '<div class="log-detail">' + l.time + ' \u00B7 ' + l.duration + ' \u0E19\u0E32\u0E17\u0E35</div></div><div class="log-coins">+' + l.coins + '</div></div>';
+        html += '<div class="log-detail">' + l.time + ' · ' + l.duration + ' นาที</div></div><div class="log-coins">+' + l.coins + '</div></div>';
       });
       html += '</div>';
     });
@@ -365,22 +374,20 @@
   function renderShop() {
     var el = document.getElementById('shopContent');
     if (!el) return;
-    var html = '<div class="card" style="text-align:center"><div style="font-size:13px;color:var(--text-dim)">\u0E40\u0E2B\u0E23\u0E35\u0E22\u0E0D\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19</div><div style="font-size:28px;font-weight:700;margin:4px 0">\uD83E\uDE99 ' + fmt(S.coins) + '</div></div><div class="shop-grid">';
+    var html = '<div class="card" style="text-align:center;padding:20px"><div style="font-size:13px;color:#64748b">เหรียญปัจจุบัน</div><div style="font-size:32px;font-weight:700;margin:6px 0;color:#fbbf24">🪙 ' + fmt(S.coins) + '</div></div><div class="shop-grid">';
     S.shopItems.forEach(function(item) {
       html += '<div class="shop-item' + (item.purchased ? ' owned' : '') + '" onclick="' + (item.purchased ? 'window.resetShop(\'' + item.id + '\')' : 'window.purchase(\'' + item.id + '\')') + '">';
-      html += '<div class="emoji">' + item.emoji + '</div>';
+      html += '<span class="emoji">' + item.emoji + '</span>';
       html += '<div class="name">' + item.name + '</div>';
-      html += '<div class="price">' + (item.purchased ? '\u2705 \u0E0B\u0E37\u0E49\u0E2D\u0E41\u0E25\u0E49\u0E27' : '\uD83E\uDE99 ' + item.price) + '</div>';
-      if (item.purchased) html += '<div style="font-size:10px;color:var(--text-dim);margin-top:2px">' + item.purchasedDate + '</div><div style="font-size:9px;color:var(--danger);margin-top:2px">\u0E41\u0E15\u0E30\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E23\u0E35\u0E40\u0E0B\u0E47\u0E15</div>';
-      html += '</div>';
+      html += '<div class="price">' + (item.purchased ? '✅ ซื้อแล้ว' : '🪙 ' + item.price) + '</div></div>';
     });
     html += '</div>';
-    html += '<div class="card" style="margin-top:10px"><div class="card-title">\u0E01\u0E15\u0E34\u0E01\u0E32</div>'
-      + '<ul style="font-size:12px;color:var(--text-dim);padding-left:16px;line-height:1.8">'
-      + '<li>\u0E2A\u0E30\u0E2A\u0E21\u0E40\u0E2B\u0E23\u0E35\u0E22\u0E0D\u0E08\u0E32\u0E01\u0E01\u0E32\u0E23\u0E40\u0E23\u0E35\u0E22\u0E19\u0E20\u0E32\u0E29\u0E32\u0E40\u0E01\u0E32\u0E2B\u0E25\u0E35</li>'
-      + '<li>\u0E43\u0E0A\u0E49\u0E40\u0E2B\u0E23\u0E35\u0E22\u0E0D\u0E0B\u0E37\u0E49\u0E2D\u0E02\u0E2D\u0E07\u0E01\u0E34\u0E19\u0E17\u0E35\u0E48\u0E2D\u0E22\u0E32\u0E01\u0E01\u0E34\u0E19</li>'
-      + '<li>\u0E0B\u0E37\u0E49\u0E2D\u0E41\u0E25\u0E49\u0E27 = \u0E2D\u0E19\u0E38\u0E0D\u0E32\u0E15\u0E43\u0E2B\u0E49\u0E01\u0E34\u0E19\u0E02\u0E2D\u0E07\u0E19\u0E31\u0E49\u0E19\u0E44\u0E14\u0E49</li>'
-      + '<li>\u0E41\u0E15\u0E30\u0E02\u0E2D\u0E07\u0E17\u0E35\u0E48\u0E0B\u0E37\u0E49\u0E2D\u0E41\u0E25\u0E49\u0E27\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E23\u0E35\u0E40\u0E0B\u0E47\u0E15 (\u0E01\u0E34\u0E19\u0E2B\u0E21\u0E14\u0E41\u0E25\u0E49\u0E27)</li>'
+    html += '<div class="card" style="margin-top:10px"><div class="card-title">📖 กติกา</div>'
+      + '<ul style="font-size:12px;color:#64748b;padding-left:16px;line-height:1.8">'
+      + '<li>สะสมเหรียญจากการเรียนภาษาเกาหลี</li>'
+      + '<li>ใช้เหรียญซื้อของกินที่อยากกิน</li>'
+      + '<li>ซื้อแล้ว = อนุญาตให้กินของนั้นได้</li>'
+      + '<li>แตะของที่ซื้อแล้วเพื่อรีเซ็ต (กินหมดแล้ว)</li>'
       + '</ul></div>';
     el.innerHTML = html;
   }
@@ -388,21 +395,21 @@
   function renderQuests() {
     var el = document.getElementById('questsContent');
     if (!el) return;
-    if (!S.currentQuest) { el.innerHTML = '<div class="empty-state"><div class="icon">\uD83D\uDCCB</div><p>\u0E44\u0E21\u0E48\u0E21\u0E35\u0E40\u0E04\u0E27\u0E2A\u0E1B\u0E23\u0E30\u0E08\u0E33\u0E2A\u0E31\u0E1B\u0E14\u0E32\u0E2B\u0E4C</p></div>'; return; }
+    if (!S.currentQuest) { el.innerHTML = '<div class="empty-state"><span class="icon">📋</span><p>ไม่มีเควสประจำสัปดาห์</p></div>'; return; }
     var qp = qProgress();
-    var html = '<div class="quest-banner"><div class="title">\uD83D\uDCCB Weekly Quest</div><div class="sub">' + S.currentQuest.msg + '</div>'
-      + '<div style="margin-top:8px"><div class="progress-bar" style="background:rgba(0,0,0,.2)"><div class="progress-fill" style="width:' + qp.pct + '%;background:#fff"></div></div>'
-      + '<div style="font-size:11px;opacity:.8;text-align:right;margin-top:2px">' + qp.done + '/' + qp.total + '</div></div></div>';
+    var html = '<div class="quest-banner"><div class="title">📋 Weekly Quest</div><div class="sub">' + S.currentQuest.msg + '</div>'
+      + '<div style="margin-top:8px"><div class="progress-bar" style="background:rgba(0,0,0,.2)"><div class="progress-fill" style="width:' + qp.pct + '%;background:linear-gradient(90deg,#a78bfa,#22d3ee)"></div></div>'
+      + '<div style="font-size:11px;opacity:.6;text-align:right;margin-top:2px">' + qp.done + '/' + qp.total + '</div></div></div>';
     html += '<div class="card">';
     S.currentQuest.items.forEach(function(item) {
       html += '<div class="quest-item">';
-      html += '<div class="quest-check' + (item.done ? ' done' : '') + '">' + (item.done ? '\u2713' : '') + '</div>';
+      html += '<div class="quest-check' + (item.done ? ' done' : '') + '">' + (item.done ? '✓' : '') + '</div>';
       html += '<div class="quest-info"><div class="desc">' + item.desc + '</div>';
       html += '<div class="prog">' + item.progress + ' / ' + item.target + ' ' + item.unit + '</div></div>';
-      html += '<div class="quest-reward">+' + item.reward + '\uD83E\uDE99</div></div>';
+      html += '<div class="quest-reward">+' + item.reward + '🪙</div></div>';
     });
     html += '</div>';
-    if (S.currentQuest.completed) html += '<div class="card" style="border-color:var(--success);text-align:center"><div style="font-size:16px"> \u0E40\u0E04\u0E27\u0E2A\u0E2D\u0E32\u0E17\u0E34\u0E15\u0E22\u0E4C\u0E19\u0E35\u0E49\u0E40\u0E2A\u0E23\u0E47\u0E08\u0E2B\u0E21\u0E14\u0E41\u0E25\u0E49\u0E27!</div></div>';
+    if (S.currentQuest.completed) html += '<div class="card" style="text-align:center;padding:20px;border-color:rgba(34,197,94,.3)">🎉 เควสอาทิตย์นี้เสร็จหมดแล้ว!</div>';
     el.innerHTML = html;
   }
 
@@ -417,18 +424,17 @@
     });
     var maxC = 1;
     for (var k in counts) { if (counts[k] > maxC) maxC = counts[k]; }
-
-    var colors = ['var(--accent)', '#22c55e', '#fbbf24', '#a78bfa', '#f472b6', '#fb923c', '#38bdf8'];
-    var html = '<div class="stat-row" style="margin-bottom:10px">'
-      + '<div class="stat-box"><div class="num">' + S.stats.totalStudyDays + '</div><div class="label">\u0E27\u0E31\u0E19\u0E17\u0E35\u0E48\u0E40\u0E23\u0E35\u0E22\u0E19</div></div>'
-      + '<div class="stat-box"><div class="num">' + Math.floor(S.stats.totalStudyMinutes / 60) + '\u0E0A\u0E21.</div><div class="label">\u0E40\u0E27\u0E25\u0E32\u0E40\u0E23\u0E35\u0E22\u0E19\u0E23\u0E27\u0E21</div></div>'
-      + '<div class="stat-box"><div class="num">' + S.stats.vocabCount + '</div><div class="label">\u0E04\u0E33\u0E28\u0E31\u0E1E\u0E17\u0E4C</div></div>'
+    var colors = ['#22d3ee', '#22c55e', '#fbbf24', '#a78bfa', '#f472b6', '#fb923c', '#38bdf8'];
+    var html = '<div class="stat-row">'
+      + '<div class="stat-box"><span class="num">' + S.stats.totalStudyDays + '</span><div class="label">วันที่เรียน</div></div>'
+      + '<div class="stat-box"><span class="num">' + Math.floor(S.stats.totalStudyMinutes / 60) + 'ชม.</span><div class="label">เวลาเรียนรวม</div></div>'
+      + '<div class="stat-box"><span class="num">' + S.stats.vocabCount + '</span><div class="label">คำศัพท์</div></div>'
       + '</div>';
 
     // Streak
-    html += '<div class="card"><div class="card-title">\uD83D\uDD25 Streak</div>'
-      + '<div class="streak-display"><div class="streak-num">' + S.streak + '</div><div class="streak-label">\u0E27\u0E31\u0E19\u0E15\u0E34\u0E14\u0E15\u0E48\u0E2D\u0E01\u0E31\u0E19</div>'
-      + '<div style="font-size:11px;color:var(--text-dim)">\u0E22\u0E32\u0E27\u0E19\u0E32\u0E19\u0E17\u0E35\u0E48\u0E2A\u0E38\u0E14: ' + S.longestStreak + ' \u0E27\u0E31\u0E19</div></div>'
+    html += '<div class="card"><div class="card-title">🔥 Streak</div>'
+      + '<div class="streak-display"><div class="streak-num">' + S.streak + '</div><div class="streak-label">วันติดต่อกัน</div>'
+      + '<div style="font-size:12px;color:#64748b;margin-top:4px">ยาวนานที่สุด: ' + S.longestStreak + ' วัน</div></div>'
       + '<div class="streak-bar">';
     for (var i = 0; i < 7; i++) {
       var ds = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
@@ -439,19 +445,19 @@
     html += '</div></div>';
 
     // Skill breakdown
-    html += '<div class="card"><div class="card-title">\u0E17\u0E31\u0E01\u0E29\u0E30\u0E41\u0E22\u0E01\u0E15\u0E32\u0E21\u0E1B\u0E23\u0E30\u0E40\u0E20\u0E17</div>';
+    html += '<div class="card"><div class="card-title">📊 ทักษะแยกตามประเภท</div>';
     ACT_TYPES.forEach(function(a, idx) {
       var pct = maxC > 0 ? Math.round((counts[a.id] || 0) / maxC * 100) : 0;
-      html += '<div class="progress-label"><span>' + a.emoji + ' ' + a.name + '</span><span>' + (counts[a.id] || 0) + ' \u0E04\u0E23\u0E31\u0E49\u0E07</span></div>';
+      html += '<div class="progress-label"><span>' + a.emoji + ' ' + a.name + '</span><span>' + (counts[a.id] || 0) + ' ครั้ง</span></div>';
       html += '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%;background:' + colors[idx % colors.length] + '"></div></div>';
     });
     html += '</div>';
 
     // Economics
-    html += '<div class="card"><div class="card-title">\u0E40\u0E28\u0E23\u0E29\u0E10\u0E28\u0E32\u0E2A\u0E15\u0E23\u0E4C</div>'
-      + '<div class="progress-label"><span>\u0E40\u0E2B\u0E23\u0E35\u0E22\u0E0D\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14\u0E17\u0E35\u0E48\u0E40\u0E04\u0E22\u0E44\u0E14\u0E49</span><span>' + fmt(S.totalEarned) + ' \uD83E\uDE99</span></div>'
-      + '<div class="progress-label"><span>\u0E40\u0E2B\u0E23\u0E35\u0E22\u0E0D\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19</span><span>' + fmt(S.coins) + ' \uD83E\uDE99</span></div>'
-      + '<div class="progress-label"><span>\u0E43\u0E0A\u0E49\u0E44\u0E1B\u0E41\u0E25\u0E49\u0E27</span><span>' + fmt(S.totalEarned - S.coins) + ' \uD83E\uDE99</span></div>'
+    html += '<div class="card"><div class="card-title">💰 เศรษฐศาสตร์</div>'
+      + '<div class="progress-label"><span>🪙 เหรียญทั้งหมดที่เคยได้</span><span>' + fmt(S.totalEarned) + ' 🪙</span></div>'
+      + '<div class="progress-label"><span>🪙 เหรียญปัจจุบัน</span><span>' + fmt(S.coins) + ' 🪙</span></div>'
+      + '<div class="progress-label"><span>🪙 ใช้ไปแล้ว</span><span>' + fmt(S.totalEarned - S.coins) + ' 🪙</span></div>'
       + '</div>';
     el.innerHTML = html;
   }
@@ -462,11 +468,10 @@
     var dur = document.getElementById('logDuration');
     var desc = document.getElementById('logDesc');
     var det = document.getElementById('logDetails');
-    if (!desc || !desc.value.trim()) { toast('\u26A0\uFE0F \u0E01\u0E23\u0E38\u0E13\u0E32\u0E01\u0E23\u0E2D\u0E01\u0E2A\u0E34\u0E48\u0E07\u0E17\u0E35\u0E48\u0E40\u0E23\u0E35\u0E22\u0E19'); return; }
+    if (!desc || !desc.value.trim()) { toast('⚠️ กรุณากรอกสิ่งที่เรียน'); return; }
     addLog(type.value, parseInt(dur.value) || 15, desc.value, det.value);
     desc.value = ''; det.value = '';
   };
-
   window.purchase = function(id) { purchase(id); };
   window.resetShop = function(id) { resetShop(id); };
   window.switchTab = switchTab;
@@ -477,7 +482,7 @@
       var type = document.getElementById('logType');
       var dur = document.getElementById('logDuration');
       var prev = document.getElementById('coinPreview');
-      if (type && dur && prev) prev.textContent = calcCoins(type.value, parseInt(dur.value) || 0) + ' \uD83E\uDE99';
+      if (type && dur && prev) prev.textContent = calcCoins(type.value, parseInt(dur.value) || 0) + ' 🪙';
     }
   });
   document.addEventListener('input', function(e) {
@@ -485,7 +490,7 @@
       var type = document.getElementById('logType');
       var dur = document.getElementById('logDuration');
       var prev = document.getElementById('coinPreview');
-      if (type && dur && prev) prev.textContent = calcCoins(type.value, parseInt(dur.value) || 0) + ' \uD83E\uDE99';
+      if (type && dur && prev) prev.textContent = calcCoins(type.value, parseInt(dur.value) || 0) + ' 🪙';
     }
   });
 
@@ -498,5 +503,4 @@
   } else {
     renderAll();
   }
-
 })();
