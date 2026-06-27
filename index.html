@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>🇰🇷 งานเกาหลี</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ====== HEADER ====== -->
+  <div class="header">
+    <h1>🇰🇷 งานเกาหลี</h1>
+    <div class="sub">สอบ EPS-TOPIK ผ่านกรมแรงงาน</div>
+    <div class="coin-display" id="coinDisplay">🪙 0</div>
+  </div>
+
+  <!-- ====== TABS ====== -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="dash" onclick="switchTab('dash')">
+      <span class="tab-icon">🏠</span>แดชบอร์ด
+    </button>
+    <button class="tab-btn" data-tab="log" onclick="switchTab('log')">
+      <span class="tab-icon">📝</span>จดบันทึก
+    </button>
+    <button class="tab-btn" data-tab="shop" onclick="switchTab('shop')">
+      <span class="tab-icon">🏪</span>ร้านค้า
+    </button>
+    <button class="tab-btn" data-tab="quest" onclick="switchTab('quest')">
+      <span class="tab-icon">📋</span>เควส
+    </button>
+    <button class="tab-btn" data-tab="stats" onclick="switchTab('stats')">
+      <span class="tab-icon">📊</span>สถิติ
+    </button>
+  </div>
+
+  <!-- ====== PANELS ====== -->
+
+  <!-- Dashboard -->
+  <div class="panel active" id="dashPanel">
+    <div id="dashContent"></div>
+  </div>
+
+  <!-- Log -->
+  <div class="panel" id="logPanel">
+    <div id="logFormPanel"></div>
+    <div id="logListContent"></div>
+  </div>
+
+  <!-- Shop -->
+  <div class="panel" id="shopPanel">
+    <div id="shopContent"></div>
+  </div>
+
+  <!-- Quests -->
+  <div class="panel" id="questPanel">
+    <div id="questsContent"></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="panel" id="statsPanel">
+    <div id="statsContent"></div>
+  </div>
+
+  <!-- ====== SYNC BAR ====== -->
+  <div class="sync-bar" id="syncStatus">
+    <span class="sync-dot"></span> กำลังโหลด...
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
