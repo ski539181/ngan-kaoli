@@ -44,4 +44,12 @@
 
 *โปรเจกต์นี้ไอเดียจากคลิป ลงทุน DIY — ปรับจากการออกกำลังกาย → เรียนภาษาเกาหลี*
 
-**สถานะ**: ⏸ พักไว้ — พร้อมเริ่มต่อเมื่อไหร่ บอกได้เลย
+**สถานะ**: ✅ Deployed!  [ngan-kaoli.vercel.app](https://ngan-kaoli.vercel.app)
+
+## Live
+
+| | |
+|---|---|
+| **🌐 เว็บ** | [ngan-kaoli.vercel.app](https://ngan-kaoli.vercel.app) |
+| **📦 GitHub** | [github.com/ski539181/ngan-kaoli](https://github.com/ski539181/ngan-kaoli) |
+| **⚡ Deploy** | Vercel (ฟรี)
